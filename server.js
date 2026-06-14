@@ -29,6 +29,10 @@ const todoOutputSchema = {
   ),
 };
 
+const pendingCountOutputSchema = {
+  count: z.number(),
+};
+
 let todos = [];
 let nextId = 1;
 
@@ -102,6 +106,44 @@ function createTodoServer() {
       );
 
       return replyWithTodos(`Completed "${todo.title}".`);
+    }
+  );
+
+  registerAppTool(
+    server,
+    "pending_todo_count",
+    {
+      title: "Pending todos",
+      description: "Returns the number of pending (not completed) todos.",
+      inputSchema: {},
+      outputSchema: pendingCountOutputSchema,
+      _meta: {
+        ui: { resourceUri: "ui://widget/todo.html" },
+      },
+    },
+    async () => {
+      const pending = todos.filter((t) => !t.completed).length;
+      return {
+        content: [{ type: "text", text: `Pending todos: ${pending}` }],
+        structuredContent: { count: pending },
+      };
+    }
+  );
+
+  registerAppTool(
+    server,
+    "list_todos",
+    {
+      title: "List todos",
+      description: "Returns the full list of todos.",
+      inputSchema: {},
+      outputSchema: todoOutputSchema,
+      _meta: {
+        ui: { resourceUri: "ui://widget/todo.html" },
+      },
+    },
+    async () => {
+      return replyWithTodos();
     }
   );
 
